@@ -1,10 +1,5 @@
-FROM golang:1.14.2-alpine3.11
+FROM alpine:3.11.6
 
-RUN apk update && \
-    apk add git
+COPY app /app
 
-RUN go get -u github.com/golang/dep/cmd/dep
-
-WORKDIR /go/src/github.com/t-9/jingu-character-service
-
-RUN dep init
+ENTRYPOINT ["/app"]
