@@ -16,20 +16,30 @@ spec:
     spec:
       containers:
         - name: jingu-character-service
-          image: aqourstokyo/jingu-character-service:latest
+          image: aqourstokyo/jingu-character-service:0.1.1
           imagePullPolicy: Always
           ports:
           - containerPort: 3000
             name: http-server
+          env:
+          - name: DB_HOST
+            value: jingu-character-service-mariadb
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: jingu-character-service-mariadb
+                key: root-password
+          - name: DB_NAME
+            value: mysql
           livenessProbe:
             httpGet:
               path: /
               port: 3000
-            initialDelaySeconds: 60
+            initialDelaySeconds: 10
             periodSeconds: 20
           readinessProbe:
             httpGet:
               path: /
               port: 3000
-            initialDelaySeconds: 60
+            initialDelaySeconds: 10
             periodSeconds: 20
