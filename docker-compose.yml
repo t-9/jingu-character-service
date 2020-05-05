@@ -1,0 +1,17 @@
+version: "3.7"
+
+services:
+  go:
+    tty: true
+    build: ./go
+    volumes:
+      - ./go/app:/go/src/github.com/t-9/jingu-character-service/app
+    ports:
+      - 3000
+    command: sh -c "dep ensure && cd app && go build && ./app"
+  nginx:
+    build: ./nginx
+    ports:
+      - 80:80
+    depends_on:
+      - go

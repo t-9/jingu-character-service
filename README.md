@@ -1,1 +1,1 @@
-# Jingu
+# jingu-character-service
