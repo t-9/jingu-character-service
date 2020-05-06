@@ -5,8 +5,9 @@ metadata:
   labels:
     app: jingu-character-service
 spec:
+  storageClassName: mariadb-storage
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
