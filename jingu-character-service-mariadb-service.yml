@@ -8,3 +8,4 @@ spec:
     targetPort: 3306
   selector:
     app: jingu-character-service
+  clusterIP: None

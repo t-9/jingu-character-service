@@ -1,0 +1,6 @@
+[mysqld]
+explicit_defaults_for_timestamp = 1
+character-set-server=utf8
+sql_mode=NO_ENGINE_SUBSTITUTION
+[mysql]
+default-character-set=utf8

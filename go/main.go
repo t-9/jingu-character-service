@@ -122,7 +122,6 @@ func dbMigrateUpHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-	fdsfs
 	w.Write([]byte("Successfully up migration version"))
 }
 

@@ -4,6 +4,6 @@ CREATE TABLE IF NOT EXISTS characters (
     given_name VARCHAR(30) NOT NULL COMMENT '名前',
     PRIMARY KEY (id)
 )
-CHARACTER SET urf8mb4 
+CHARACTER SET utf8mb4 
 COLLATE utf8mb4_general_ci
 COMMENT='キャラクターテーブル';
