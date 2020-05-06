@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jingu-character-service-nginx
+  labels:
+    app: jingu-character-service
+spec:
+  selector:
+    matchLabels:
+      app: jingu-character-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: jingu-character-service
+    spec:
+      containers:
+        - name: jingu-character-service-nginx
+          image: aqourstokyo/jingu-character-service-nginx:latest
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 80
+            name: http-server
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 20

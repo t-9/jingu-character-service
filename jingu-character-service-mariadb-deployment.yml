@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jingu-character-service-mariadb
+  labels:
+    app: jingu-character-service
+spec:
+  selector:
+    matchLabels:
+      app: jingu-character-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: jingu-character-service
+    spec:
+      containers:
+        - name: jingu-character-service-mariadb
+          image: aqourstokyo/jingu-character-service-mariadb:latest
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 3306
+            name: mariadb-server
+          volumeMounts:
+          - name: jingu-character-service-mariadb-persistent-storage
+            mountPath: /var/lib/mysql
+          env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: jingu-character-service-mariadb
+                key: root-password
+      volumes:
+      - name: jingu-character-service-mariadb-persistent-storage
+        persistentVolumeClaim:
+          claimName: jingu-character-service-mariadb-persistent-volume-claim

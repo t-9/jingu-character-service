@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jingu-character-service
+  labels:
+    app: jingu-character-service
+spec:
+  selector:
+    matchLabels:
+      app: jingu-character-service
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: jingu-character-service
+    spec:
+      containers:
+        - name: jingu-character-service
+          image: aqourstokyo/jingu-character-service:0.1.13
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 3000
+            name: http-server
+          env:
+          - name: DB_DRIVER
+            value: mysql
+          - name: DB_HOST
+            value: jingu-character-service-mariadb
+          - name: DB_PORT
+            value: "3306"
+          - name: DB_USER
+            value: root
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: jingu-character-service-mariadb
+                key: root-password
+          - name: DB_NAME
+            value: characters
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20

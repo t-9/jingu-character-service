@@ -1,0 +1,8 @@
+version: "3.7"
+
+services:
+  go:
+    build: ./build
+    volumes:
+      - ./go:/go/src/github.com/t-9/jingu-character-service/app
+    command: sh -c "cd app && go build -o app"
