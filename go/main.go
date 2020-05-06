@@ -31,7 +31,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello world!")
 }
 
-func dbHandler(w http.ResponseWriter, r *http.Request) {
+func listHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := gorm.Open(
 		os.Getenv("DB_DRIVER"),
 		fmt.Sprintf(
@@ -189,11 +189,12 @@ func dbAddHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", rootHandler)
-	r.HandleFunc("/db", dbHandler)
 	r.HandleFunc("/db/create", dbCreateHandler)
 	r.HandleFunc("/db/migrate/up", dbMigrateUpHandler)
 	r.HandleFunc("/db/migrate/down", dbMigrateDownHandler)
 	r.HandleFunc("/db/add", dbAddHandler)
+
+	r.HandleFunc("/v1/list", listHandler).Methods("GET")
 
 	http.Handle("/", r)
 	http.ListenAndServe(":3000", nil)
