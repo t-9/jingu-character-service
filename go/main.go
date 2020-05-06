@@ -19,24 +19,42 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func dbHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("url path is " + r.URL.Path[1:] + "\n"))
-
-	dbConnectQuery := os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASSWORD") +
-		"@tcp(" + os.Getenv("DB_HOST") + ":3306)/" + os.Getenv("DB_NAME")
-	db, err := sql.Open("mysql", dbConnectQuery)
+	db, err := sql.Open(
+		os.Getenv("DB_DRIVER"),
+		fmt.Sprintf(
+			"%s:%s@tcp(%s:%s)/%s",
+			os.Getenv("DB_USER"),
+			os.Getenv("DB_PASSWORD"),
+			os.Getenv("DB_HOST"),
+			os.Getenv("DB_PORT"),
+			os.Getenv("DB_NAME"),
+		),
+	)
 	if err != nil {
-		panic(err.Error())
+		w.Write([]byte(err.Error()))
+		return
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			w.Write([]byte(err.Error()))
+		}
+	}()
 
-	rows, err := db.Query("SELECT * FROM user")
+	rows, err := db.Query(
+		fmt.Sprintf(
+			"SELECT * FROM %s",
+			os.Getenv("DB_NAME"),
+		),
+	)
 	if err != nil {
-		panic(err.Error())
+		w.Write([]byte(err.Error()))
+		return
 	}
 
 	columns, err := rows.Columns()
 	if err != nil {
-		panic(err.Error())
+		w.Write([]byte(err.Error()))
+		return
 	}
 
 	values := make([]sql.RawBytes, len(columns))
@@ -49,12 +67,12 @@ func dbHandler(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		err = rows.Scan(scanArgs...)
 		if err != nil {
-			panic(err.Error())
+			w.Write([]byte(err.Error()))
+			return
 		}
 
 		var value string
 		for i, col := range values {
-			// Here we can check if the value is nil (NULL value)
 			if col == nil {
 				value = "NULL"
 			} else {
@@ -151,6 +169,42 @@ func dbMigrateDownHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Successfully up migration version"))
 }
 
+func dbAddHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open(
+		os.Getenv("DB_DRIVER"),
+		fmt.Sprintf(
+			"%s:%s@tcp(%s:%s)/%s",
+			os.Getenv("DB_USER"),
+			os.Getenv("DB_PASSWORD"),
+			os.Getenv("DB_HOST"),
+			os.Getenv("DB_PORT"),
+			os.Getenv("DB_NAME"),
+		),
+	)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+		return
+	}
+	defer func() {
+		if err := db.Close(); err != nil {
+			w.Write([]byte(err.Error()))
+		}
+	}()
+
+	_, err = db.Exec(
+		fmt.Sprintf(
+			"INSERT INTO characters(surname, given_name) VALUES('%s', '%s')",
+			"津島",
+			"善子",
+		),
+	)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.Write([]byte("Successfully insert a record!"))
+}
+
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", rootHandler)
@@ -158,6 +212,7 @@ func main() {
 	r.HandleFunc("/db/create", dbCreateHandler)
 	r.HandleFunc("/db/migrate/up", dbMigrateUpHandler)
 	r.HandleFunc("/db/migrate/down", dbMigrateDownHandler)
+	r.HandleFunc("/db/add", dbAddHandler)
 
 	http.Handle("/", r)
 	http.ListenAndServe(":3000", nil)
