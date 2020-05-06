@@ -17,6 +17,6 @@ spec:
       nodeSelectorTerms:
       - matchExpressions:
         - key: kubernetes.io/hostname
-           operator: In
-           values:
-           - node01
+          operator: In
+          values:
+          - node01
