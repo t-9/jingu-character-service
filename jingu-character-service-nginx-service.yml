@@ -5,9 +5,10 @@ metadata:
   labels:
     app: jingu-character-service
 spec:
-  type: LoadBalancer
+  type: NodePort
   ports:
-  - port: 80
-    targetPort: http-server
+  - nodePort: 30000
+    port: 80
+    targetPort: 3000
   selector:
     app: jingu-character-service
