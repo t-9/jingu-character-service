@@ -5,4 +5,4 @@ services:
     build: ./build
     volumes:
       - ./go:/go/src/github.com/t-9/jingu-character-service/app
-    command: sh -c "dep ensure && cd app && go build"
+    command: sh -c "cd app && go build -o app"

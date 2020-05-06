@@ -16,21 +16,27 @@ spec:
     spec:
       containers:
         - name: jingu-character-service
-          image: aqourstokyo/jingu-character-service:0.1.1
+          image: aqourstokyo/jingu-character-service:0.1.6
           imagePullPolicy: Always
           ports:
           - containerPort: 3000
             name: http-server
           env:
+          - name: DB_DRIVER
+            value: mysql
           - name: DB_HOST
             value: jingu-character-service-mariadb
+          - name: DB_PORT
+            value: "3306"
+          - name: DB_USER
+            value: root
           - name: DB_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: jingu-character-service-mariadb
                 key: root-password
           - name: DB_NAME
-            value: mysql
+            value: characters
           livenessProbe:
             httpGet:
               path: /

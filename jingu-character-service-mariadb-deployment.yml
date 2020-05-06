@@ -8,7 +8,7 @@ spec:
   selector:
     matchLabels:
       app: jingu-character-service
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       labels:
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: jingu-character-service-mariadb
-          image: mariadb:10.5.2-bionic
+          image: aqourstokyo/jingu-character-service-mariadb:latest
           imagePullPolicy: Always
           ports:
           - containerPort: 3306
