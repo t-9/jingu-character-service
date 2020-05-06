@@ -2,27 +2,40 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
 
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
+
+// Character represents a character.
+type Character struct {
+	ID        uint      `gorm:"primary_key"`
+	Surname   *string   `gorm:"column:surname"`
+	GivenName string    `gorm:"column:given_name"`
+	CreatedAt time.Time `gorm:"column:created_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at"`
+}
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello world!")
 }
 
 func dbHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open(
+	db, err := gorm.Open(
 		os.Getenv("DB_DRIVER"),
 		fmt.Sprintf(
-			"%s:%s@tcp(%s:%s)/%s",
+			"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 			os.Getenv("DB_USER"),
 			os.Getenv("DB_PASSWORD"),
 			os.Getenv("DB_HOST"),
@@ -40,48 +53,16 @@ func dbHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	rows, err := db.Query(
-		fmt.Sprintf(
-			"SELECT * FROM %s",
-			os.Getenv("DB_NAME"),
-		),
-	)
+	var characters []Character
+	db.Find(&characters)
+
+	j, err := json.Marshal(characters)
 	if err != nil {
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	columns, err := rows.Columns()
-	if err != nil {
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	values := make([]sql.RawBytes, len(columns))
-
-	scanArgs := make([]interface{}, len(values))
-	for i := range values {
-		scanArgs[i] = &values[i]
-	}
-
-	for rows.Next() {
-		err = rows.Scan(scanArgs...)
-		if err != nil {
-			w.Write([]byte(err.Error()))
-			return
-		}
-
-		var value string
-		for i, col := range values {
-			if col == nil {
-				value = "NULL"
-			} else {
-				value = string(col)
-			}
-			w.Write([]byte(columns[i] + ": " + value + "\n"))
-		}
-		fmt.Println("-----------------------------------")
-	}
+	w.Write(j)
 }
 
 func dbCreateHandler(w http.ResponseWriter, r *http.Request) {
