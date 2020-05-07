@@ -1,0 +1,3 @@
+ALTER TABLE characters 
+MODIFY surname VARCHAR(30)
+DEFAULT '' COMMENT '苗字';
