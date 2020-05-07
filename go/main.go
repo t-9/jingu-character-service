@@ -165,7 +165,7 @@ func showHandler(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var c Character
-	db.Find(&c, uint(id))
+	db.First(&c, uint(id))
 	if c.ID == 0 {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -173,6 +173,62 @@ func showHandler(w http.ResponseWriter, r *http.Request) {
 
 	j, err := json.Marshal(c)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
+}
+
+func updateHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	surname := r.FormValue("surname")
+	givenName := r.FormValue("given_name")
+
+	id, err := strconv.ParseUint(vars["id"], 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid id"))
+		return
+	}
+
+	db, err := openGorm()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	defer func() {
+		if err := db.Close(); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+		}
+	}()
+
+	var c Character
+	db.First(&c, uint(id))
+	if c.ID == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	if surname != "" {
+		c.Surname = surname
+	}
+	if givenName != "" {
+		c.GivenName = givenName
+	}
+
+	j, err := json.Marshal(c)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	if err := db.Save(&c).Error; err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
@@ -327,6 +383,8 @@ func main() {
 		"/v1/destroy/{id:[0-9]+}", destroyHandler).Methods("DELETE")
 	r.HandleFunc(
 		"/v1/show/{id:[0-9]+}", showHandler).Methods("GET")
+	r.HandleFunc(
+		"/v1/update/{id:[0-9]+}", updateHandler).Methods("PUT")
 
 	r.HandleFunc(
 		"/v1/admin/db/create", dbCreateHandler).Methods("POST")
