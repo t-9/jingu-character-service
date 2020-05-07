@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: jingu-character-service
-          image: aqourstokyo/jingu-character-service:0.5.1
+          image: aqourstokyo/jingu-character-service:0.6.1
           imagePullPolicy: Always
           ports:
           - containerPort: 3000
