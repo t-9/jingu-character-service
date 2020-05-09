@@ -2,6 +2,7 @@ package entity
 
 import (
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/t-9/jingu-character-service/go/db"
@@ -20,68 +21,71 @@ type Character struct {
 var Fillable = [...]string{"surname", "givenName"}
 
 // Create a character.
-func Create(params map[string]string) (c Character, err error) {
-	c = Character{
-		Surname:   params["surname"],
-		GivenName: params["givenName"],
-	}
-
-	db, err2 := db.OpenGorm()
+func (c *Character) Create() (err error) {
+	d, err2 := db.OpenGorm()
 	if err2 != nil {
-		return c, err2
+		return err2
 	}
 	defer func() {
-		if err2 := db.Close(); err2 != nil {
+		if err2 := d.Close(); err2 != nil {
 			err = err2
 		}
 	}()
 
-	if !db.NewRecord(&c) {
-		return c, errors.New("could not create new record")
+	if !d.NewRecord(c) {
+		return errors.New("could not create new record")
 	}
 
-	if err2 := db.Create(&c).Error; err2 != nil {
-		return c, err2
-	}
-	return
+	return d.Create(c).Error
 }
 
 // Destroy a character.
 func (c *Character) Destroy() (err error) {
-	db, err2 := db.OpenGorm()
+	d, err2 := db.OpenGorm()
 	if err2 != nil {
 		return err2
 	}
 	defer func() {
-		if err2 := db.Close(); err2 != nil {
+		if err2 := d.Close(); err2 != nil {
 			err = err2
 		}
 	}()
 
-	return db.Delete(c).Error
+	return d.Delete(c).Error
 }
 
 // Update a character.
 func (c *Character) Update() (err error) {
-	db, err2 := db.OpenGorm()
+	d, err2 := db.OpenGorm()
 	if err2 != nil {
 		return err2
 	}
 	defer func() {
-		if err2 := db.Close(); err2 != nil {
+		if err2 := d.Close(); err2 != nil {
 			err = err2
 		}
 	}()
 
-	return db.Save(c).Error
+	return d.Save(c).Error
 }
 
 // SetFieldByName sets a field by name.
 func (c *Character) SetFieldByName(name string, value string) {
 	switch name {
+	case "id":
+		u64, err := strconv.ParseUint(value, 10, 64)
+		if err != nil {
+			return
+		}
+		c.ID = uint(u64)
 	case "surname":
 		c.Surname = value
 	case "givenName":
 		c.GivenName = value
 	}
+}
+
+// GetID returns a id.
+func (c *Character) GetID() uint {
+	return c.ID
 }

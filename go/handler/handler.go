@@ -36,46 +36,39 @@ func ListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // StoreHandler handles access to the Store API.
-func StoreHandler(w http.ResponseWriter, r *http.Request) {
-	p := make(map[string]string, len(entity.Fillable))
+func StoreHandler(w http.ResponseWriter, r *http.Request, e entity.Entity) {
 	for _, v := range entity.Fillable {
-		p[v] = r.FormValue(strcase.ToSnake(v))
+		e.SetFieldByName(v, r.FormValue(strcase.ToSnake(v)))
 	}
-	c, err := entity.Create(p)
-	if err != nil {
 
+	if err := e.Create(); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	}
 
-	w.Header().Set("location", fmt.Sprintf("/v1/show/%d", c.ID))
+	w.Header().Set("location", fmt.Sprintf("/v1/show/%d", e.GetID()))
 	w.WriteHeader(http.StatusCreated)
 
-	j, err := json.Marshal(c)
+	j, err := json.Marshal(e)
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf("{\"ID\":%d}", c.ID)))
+		w.Write([]byte(fmt.Sprintf("{\"ID\":%d}", e.GetID())))
 		return
 	}
-
 	w.Write(j)
 }
 
 // DestroyHandler handles to access to the destroy API.
-func DestroyHandler(w http.ResponseWriter, r *http.Request) {
+func DestroyHandler(w http.ResponseWriter, r *http.Request, e entity.Entity) {
 	vars := mux.Vars(r)
 
-	id, err := strconv.ParseUint(vars["id"], 10, 64)
-	if err != nil {
+	e.SetFieldByName("id", vars["id"])
+	if e.GetID() == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("invalid id"))
 		return
 	}
 
-	c := entity.Character{
-		ID: uint(id),
-	}
-
-	if err := c.Destroy(); err != nil {
+	if err := e.Destroy(); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return

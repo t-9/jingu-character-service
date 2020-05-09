@@ -9,6 +9,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 
 	"github.com/gorilla/mux"
+	"github.com/t-9/jingu-character-service/go/entity"
 	"github.com/t-9/jingu-character-service/go/handler"
 )
 
@@ -17,9 +18,11 @@ func main() {
 	r.HandleFunc("/", handler.RootHandler)
 
 	r.HandleFunc("/v1/list", handler.ListHandler).Methods("GET")
-	r.HandleFunc("/v1/store", handler.StoreHandler).Methods("POST")
+	r.HandleFunc("/v1/store",
+		makeEntityHandler(handler.StoreHandler)).Methods("POST")
 	r.HandleFunc(
-		"/v1/destroy/{id:[0-9]+}", handler.DestroyHandler).Methods("DELETE")
+		"/v1/destroy/{id:[0-9]+}",
+		makeEntityHandler(handler.DestroyHandler)).Methods("DELETE")
 	r.HandleFunc(
 		"/v1/show/{id:[0-9]+}", handler.ShowHandler).Methods("GET")
 	r.HandleFunc(
@@ -38,4 +41,13 @@ func main() {
 
 	http.Handle("/", r)
 	http.ListenAndServe(":3000", nil)
+}
+
+func makeEntityHandler(
+	fn func(http.ResponseWriter, *http.Request, entity.Entity),
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		e := &entity.Character{}
+		fn(w, r, e)
+	}
 }
