@@ -5,11 +5,11 @@ import (
 	"github.com/t-9/jingu-character-service/go/entity"
 )
 
-// FindByID finds a character by id.
-func FindByID(id uint) (c entity.Character, err error) {
+// FindByID finds a entity record by id.
+func FindByID(id uint) (e entity.Character, err error) {
 	db, err2 := db.OpenGorm()
 	if err2 != nil {
-		return c, err2
+		return e, err2
 	}
 	defer func() {
 		if err2 := db.Close(); err2 != nil {
@@ -17,15 +17,15 @@ func FindByID(id uint) (c entity.Character, err error) {
 		}
 	}()
 
-	err = db.First(&c, id).Error
+	err = db.First(&e, id).Error
 	return
 }
 
-// RetrieveAll retrieve all character records.
-func RetrieveAll() (chars []entity.Character, err error) {
+// RetrieveAll retrieves all entity records.
+func RetrieveAll() (e []entity.Character, err error) {
 	db, err2 := db.OpenGorm()
 	if err2 != nil {
-		return chars, err2
+		return e, err2
 	}
 	defer func() {
 		if err2 := db.Close(); err2 != nil {
@@ -33,6 +33,6 @@ func RetrieveAll() (chars []entity.Character, err error) {
 		}
 	}()
 
-	err = db.Find(&chars).Error
+	err = db.Find(&e).Error
 	return
 }
